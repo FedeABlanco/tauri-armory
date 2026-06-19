@@ -66,18 +66,33 @@ app.get('/api/tooltip', async (req, res) => {
 
   if (tooltipCache.has(id)) return res.json(tooltipCache.get(id));
 
-  try {
-    const r = await fetch(
-      `https://es.wowhead.com/tooltip/item/${id}?dataEnv=4&locale=0`,
-      { headers: { 'User-Agent': 'Mozilla/5.0' }, timeout: 6000 }
-    );
-    if (!r.ok) return res.status(r.status).json({ error: 'no encontrado' });
-    const data = await r.json();
-    tooltipCache.set(id, data);
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  const urls = [
+    `https://es.wowhead.com/tooltip/item/${id}?dataEnv=4&locale=0`,
+    `https://www.wowhead.com/tooltip/item/${id}?dataEnv=4&locale=0`,
+    `https://es.wowhead.com/tooltip/item/${id}`,
+  ];
+
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Accept': 'application/json, text/javascript, */*',
+    'Accept-Language': 'es-ES,es;q=0.9',
+    'Referer': 'https://es.wowhead.com/',
+    'Origin': 'https://es.wowhead.com',
+  };
+
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, { headers, timeout: 8000 });
+      if (!r.ok) continue;
+      const data = await r.json();
+      if (data && (data.tooltip || data.name)) {
+        tooltipCache.set(id, data);
+        return res.json(data);
+      }
+    } catch (_) { /* intenta siguiente */ }
   }
+
+  res.status(404).json({ error: 'tooltip no disponible' });
 });
 
 const PORT = process.env.PORT || 3000;

@@ -349,7 +349,7 @@ async function openItemPopup(linkEl) {
     if (!res.ok) throw new Error('sin datos');
     const data = await res.json();
 
-    if (data.tooltip) {
+    if (data && data.tooltip) {
       // Limpiar el HTML de Wowhead para mostrar solo la tabla de stats
       const tmp = document.createElement('div');
       tmp.innerHTML = data.tooltip;
@@ -360,7 +360,8 @@ async function openItemPopup(linkEl) {
       document.getElementById('popupTooltip').innerHTML = '<span style="color:#8a7050">No se pudo cargar el detalle.</span>';
     }
   } catch {
-    document.getElementById('popupTooltip').innerHTML = '<span style="color:#8a7050">Error al cargar el detalle.</span>';
+    document.getElementById('popupTooltip').innerHTML =
+      '<span style="color:#8a7050">No se pudo cargar el detalle. Toca el botón para verlo en Wowhead.</span>';
   }
 }
 
