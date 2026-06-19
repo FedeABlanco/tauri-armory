@@ -136,6 +136,25 @@
 
   </div><!-- /sheet -->
 
+<!-- MOBILE ITEM POPUP -->
+<div id="itemPopup" class="item-popup hidden">
+  <div class="item-popup-backdrop" onclick="closeItemPopup()"></div>
+  <div class="item-popup-sheet">
+    <div class="item-popup-header">
+      <img id="popupIcon" src="" alt="">
+      <div class="item-popup-title">
+        <span id="popupName"></span>
+        <span id="popupIlvl" class="popup-ilvl"></span>
+      </div>
+      <button class="popup-close" onclick="closeItemPopup()">✕</button>
+    </div>
+    <div id="popupTooltip" class="item-popup-tooltip"></div>
+    <a id="popupWowheadBtn" href="#" target="_blank" rel="noopener" class="popup-wowhead-btn">
+      Ver en Wowhead →
+    </a>
+  </div>
+</div>
+
 </div><!-- /app -->
 
 <script src="character3d.js"></script>

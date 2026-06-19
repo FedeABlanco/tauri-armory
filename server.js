@@ -58,5 +58,27 @@ app.get('/api/portrait', async (req, res) => {
   res.status(404).end();
 });
 
+// ─── Wowhead tooltip proxy ────────────────────────────────────────────────────
+const tooltipCache = new Map();
+app.get('/api/tooltip', async (req, res) => {
+  const id = parseInt(req.query.id);
+  if (!id) return res.status(400).json({ error: 'id requerido' });
+
+  if (tooltipCache.has(id)) return res.json(tooltipCache.get(id));
+
+  try {
+    const r = await fetch(
+      `https://es.wowhead.com/tooltip/item/${id}?dataEnv=4&locale=0`,
+      { headers: { 'User-Agent': 'Mozilla/5.0' }, timeout: 6000 }
+    );
+    if (!r.ok) return res.status(r.status).json({ error: 'no encontrado' });
+    const data = await r.json();
+    tooltipCache.set(id, data);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));

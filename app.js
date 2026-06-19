@@ -248,8 +248,12 @@ function renderSlot(slotEl, item, index) {
   link.href = wowheadUrl;
   link.target = '_blank';
   link.rel = 'noopener';
-  // Wowhead tooltip attributes
   link.setAttribute('data-wowhead', `item=${item.entry}`);
+  link.setAttribute('data-item-id', item.entry);
+  link.setAttribute('data-item-name', item.name || '');
+  link.setAttribute('data-item-icon', iconName);
+  link.setAttribute('data-item-ilvl', item.ilevel || '');
+  link.setAttribute('data-item-quality', q);
 
   const img = document.createElement('img');
   img.src = iconUrl;
@@ -263,6 +267,13 @@ function renderSlot(slotEl, item, index) {
   link.appendChild(img);
   link.appendChild(badge);
   slotEl.appendChild(link);
+
+  // ── Tap-to-tooltip en móvil ──
+  link.addEventListener('click', e => {
+    if (!isTouchDevice()) return; // escritorio: comportamiento normal
+    e.preventDefault();
+    openItemPopup(link);
+  });
 }
 
 function setClassIcon(imgEl, classId) {
@@ -298,3 +309,62 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') buscarPersonaje();
   });
 });
+
+// ─── TOUCH DETECTION ─────────────────────────────────────────────────────────
+function isTouchDevice() {
+  return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+}
+
+// ─── MOBILE ITEM POPUP ───────────────────────────────────────────────────────
+const QUALITY_COLORS_MAP = {
+  0: '#9d9d9d', 1: '#ffffff', 2: '#1eff00',
+  3: '#0070dd', 4: '#a335ee', 5: '#ff8000', 6: '#e6cc80',
+};
+
+async function openItemPopup(linkEl) {
+  const id      = linkEl.getAttribute('data-item-id');
+  const name    = linkEl.getAttribute('data-item-name');
+  const icon    = linkEl.getAttribute('data-item-icon');
+  const ilvl    = linkEl.getAttribute('data-item-ilvl');
+  const quality = parseInt(linkEl.getAttribute('data-item-quality') || '1');
+  const color   = QUALITY_COLORS_MAP[quality] || '#ffffff';
+  const wowheadUrl = `${WOWHEAD_BASE}${id}`;
+
+  // Rellenar header del popup
+  document.getElementById('popupIcon').src = `${ICON_BASE}${icon}.jpg`;
+  document.getElementById('popupIcon').style.borderColor = color;
+  document.getElementById('popupName').textContent = name;
+  document.getElementById('popupName').style.color = color;
+  document.getElementById('popupIlvl').textContent = ilvl ? `Nivel de objeto ${ilvl}` : '';
+  document.getElementById('popupWowheadBtn').href = wowheadUrl;
+  document.getElementById('popupTooltip').innerHTML = '<span style="color:#8a7050">Cargando...</span>';
+
+  // Mostrar popup inmediatamente con la info básica
+  document.getElementById('itemPopup').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+
+  // Luego cargar el tooltip completo de Wowhead
+  try {
+    const res = await fetch(`/api/tooltip?id=${id}`);
+    if (!res.ok) throw new Error('sin datos');
+    const data = await res.json();
+
+    if (data.tooltip) {
+      // Limpiar el HTML de Wowhead para mostrar solo la tabla de stats
+      const tmp = document.createElement('div');
+      tmp.innerHTML = data.tooltip;
+      // Eliminar elementos no útiles en mobile
+      tmp.querySelectorAll('.iconmedium, .icon, br:last-child').forEach(el => el.remove());
+      document.getElementById('popupTooltip').innerHTML = tmp.innerHTML;
+    } else {
+      document.getElementById('popupTooltip').innerHTML = '<span style="color:#8a7050">No se pudo cargar el detalle.</span>';
+    }
+  } catch {
+    document.getElementById('popupTooltip').innerHTML = '<span style="color:#8a7050">Error al cargar el detalle.</span>';
+  }
+}
+
+function closeItemPopup() {
+  document.getElementById('itemPopup').classList.add('hidden');
+  document.body.style.overflow = '';
+}
