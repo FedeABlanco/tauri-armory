@@ -411,12 +411,83 @@ body {
 .class-11 { color: #FF7D0A; } /* Druid */
 .class-12 { color: #A330C9; } /* Demon Hunter */
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 640px) {
-  .paperdoll { grid-template-columns: 60px 1fr 60px; }
+/* ===== RESPONSIVE — TABLET (≤ 700px) ===== */
+@media (max-width: 700px) {
+  .app { padding: 0 4px 32px; }
+
+  /* Search bar apilada */
+  .search-inner {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .search-inner select  { flex: 1 1 120px; }
+  .search-inner input   { flex: 1 1 100%; order: 3; }
+  .search-inner button  { flex: 1 1 auto; order: 4; }
+  .logo-text { display: none; }
+
+  /* Header compacto */
+  .sheet-header { padding: 10px 12px; gap: 10px; }
+  .char-info h1 { font-size: 18px; }
+  .ilvl-value   { font-size: 22px; }
+
+  /* Paperdoll: slots más chicos */
+  .paperdoll {
+    grid-template-columns: 52px 1fr 52px;
+    padding: 8px 4px;
+    gap: 0;
+  }
+  .slots-col { gap: 4px; padding: 2px; }
   .item-slot { width: 48px; height: 48px; }
-  .model-frame { width: 160px; height: 260px; }
-  .model-bars, .weapon-slots { width: 160px; }
-  .stats-panel { grid-template-columns: 1fr; }
-  .stats-group { border-right: none; border-bottom: 1px solid #2a1a00; padding-bottom: 10px; margin-bottom: 4px; }
+  .item-slot .ilvl-badge { font-size: 9px; }
+
+  /* Modelo más chico */
+  .model-frame  { width: 150px; height: 240px; }
+  .model-bars   { width: 150px; }
+  .weapon-slots { gap: 4px; }
+  .weapon-slot  { width: 48px !important; height: 48px !important; }
+
+  /* Stats en 2 columnas */
+  .stats-panel {
+    grid-template-columns: 1fr 1fr;
+    padding: 10px 8px;
+  }
+  .stats-group:last-child {
+    grid-column: 1 / -1;
+    border-right: none;
+    border-top: 1px solid #2a1a00;
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+  .stats-group { border-right: none; padding: 0 8px 8px; }
+  .stats-group:first-child { border-right: 1px solid #2a1a00; }
+}
+
+/* ===== RESPONSIVE — MÓVIL (≤ 480px) ===== */
+@media (max-width: 480px) {
+  /* Paperdoll: slots mínimos */
+  .paperdoll { grid-template-columns: 44px 1fr 44px; }
+  .item-slot  { width: 40px; height: 40px; }
+  .item-slot .ilvl-badge { font-size: 8px; }
+
+  /* Modelo */
+  .model-frame  { width: 120px; height: 200px; }
+  .model-bars   { width: 120px; }
+  .bar-label    { font-size: 10px; width: 28px; }
+  .bar-val      { font-size: 9px;  width: 32px; }
+  .weapon-slot  { width: 40px !important; height: 40px !important; }
+  .weapon-slots { gap: 3px; }
+
+  /* Header muy compacto */
+  .char-portrait-small { width: 40px; height: 40px; }
+  .char-info h1   { font-size: 15px; }
+  .char-info p    { font-size: 11px; }
+  .ilvl-label     { font-size: 10px; }
+  .ilvl-value     { font-size: 18px; }
+
+  /* Stats en 1 columna */
+  .stats-panel { grid-template-columns: 1fr; padding: 8px; }
+  .stats-group { border-right: none; border-bottom: 1px solid #2a1a00; padding-bottom: 8px; margin-bottom: 4px; }
+  .stats-group:last-child { border-bottom: none; grid-column: auto; border-top: none; }
+  .stats-title { font-size: 10px; }
+  .stat-name, .stat-val { font-size: 11px; }
 }
