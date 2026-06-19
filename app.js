@@ -32,7 +32,7 @@ const SLOT_NAMES = {
 };
 
 const ICON_BASE = 'https://wow.zamimg.com/images/wow/icons/large/';
-const WOWHEAD_BASE = 'https://www.wowhead.com/item=';
+const WOWHEAD_BASE = 'https://es.wowhead.com/item=';
 
 // ─── MODEL ROTATION ─────────────────────────────────────────────────────────
 let rotation = 0;
