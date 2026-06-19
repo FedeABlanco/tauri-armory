@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tauri WoW Armory</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://wow.zamimg.com/widgets/power.js"></script>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SEARCH BAR -->
+  <div class="search-bar">
+    <div class="search-inner">
+      <img src="https://wow.zamimg.com/images/wow/icons/medium/achievement_guildperk_everybodysfriend.jpg" class="logo-icon" alt="">
+      <span class="logo-text">Tauri Armory</span>
+      <select id="realm">
+        <option value="[EN] Evermoon">[EN] Evermoon</option>
+        <option value="[HU] Tauri">[HU] Tauri</option>
+        <option value="[HU] Warriors of Darkness">[HU] WoD</option>
+      </select>
+      <input type="text" id="characterName" placeholder="Nombre del personaje..." autocomplete="off">
+      <button id="searchBtn" onclick="buscarPersonaje()">Buscar</button>
+    </div>
+  </div>
+
+  <!-- ERROR / LOADING -->
+  <div id="loading" class="status-msg hidden">
+    <div class="spinner"></div>
+    <span>Consultando la Armería de Tauri...</span>
+  </div>
+  <div id="errorMsg" class="status-msg error hidden"></div>
+
+  <!-- CHARACTER SHEET -->
+  <div id="sheet" class="sheet hidden">
+
+    <!-- HEADER -->
+    <div class="sheet-header">
+      <div class="char-portrait-small">
+        <img id="hdrPortrait" src="" alt="">
+      </div>
+      <div class="char-info">
+        <h1 id="hdrName"></h1>
+        <p id="hdrSub"></p>
+      </div>
+      <div class="char-ilvl">
+        <span class="ilvl-label">iLvl promedio</span>
+        <span id="hdrIlvl" class="ilvl-value"></span>
+      </div>
+    </div>
+
+    <!-- PAPER DOLL -->
+    <div class="paperdoll">
+
+      <!-- LEFT SLOTS -->
+      <div class="slots-col slots-left">
+        <div class="item-slot" id="slot-0" data-label="Cabeza"></div>
+        <div class="item-slot" id="slot-1" data-label="Cuello"></div>
+        <div class="item-slot" id="slot-2" data-label="Hombros"></div>
+        <div class="item-slot" id="slot-3" data-label="Espalda"></div>
+        <div class="item-slot" id="slot-4" data-label="Pecho"></div>
+        <div class="item-slot" id="slot-5" data-label="Camisa"></div>
+        <div class="item-slot" id="slot-6" data-label="Tabardo"></div>
+        <div class="item-slot" id="slot-7" data-label="Muñecas"></div>
+      </div>
+
+      <!-- CHARACTER MODEL -->
+      <div class="model-area">
+        <div class="model-frame" id="modelFrame">
+          <div class="model-glow" id="modelGlow"></div>
+          <img id="characterModel" src="" alt="Personaje" draggable="false">
+          <div class="model-overlay"></div>
+          <div class="drag-hint">⟲ Arrastrar para girar</div>
+        </div>
+        <div class="model-bars">
+          <div class="bar-row">
+            <span class="bar-label">Vida</span>
+            <div class="bar health-bar"><div id="barHealth" class="bar-fill"></div></div>
+            <span id="valHealth" class="bar-val"></span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label" id="barPowerLabel">Maná</span>
+            <div class="bar power-bar"><div id="barPower" class="bar-fill"></div></div>
+            <span id="valPower" class="bar-val"></span>
+          </div>
+        </div>
+        <!-- WEAPON SLOTS BELOW MODEL -->
+        <div class="weapon-slots">
+          <div class="item-slot weapon-slot" id="slot-16" data-label="Mano Ppal."></div>
+          <div class="item-slot weapon-slot" id="slot-17" data-label="Mano Sec."></div>
+          <div class="item-slot weapon-slot" id="slot-18" data-label="A distancia"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT SLOTS -->
+      <div class="slots-col slots-right">
+        <div class="item-slot" id="slot-8"  data-label="Manos"></div>
+        <div class="item-slot" id="slot-9"  data-label="Cintura"></div>
+        <div class="item-slot" id="slot-10" data-label="Piernas"></div>
+        <div class="item-slot" id="slot-11" data-label="Pies"></div>
+        <div class="item-slot" id="slot-12" data-label="Anillo 1"></div>
+        <div class="item-slot" id="slot-13" data-label="Anillo 2"></div>
+        <div class="item-slot" id="slot-14" data-label="Objeto 1"></div>
+        <div class="item-slot" id="slot-15" data-label="Objeto 2"></div>
+      </div>
+
+    </div><!-- /paperdoll -->
+
+    <!-- STATS PANEL -->
+    <div class="stats-panel">
+      <div class="stats-group">
+        <h3 class="stats-title">Atributos</h3>
+        <div class="stat-row"><span class="stat-name str">Fuerza</span><span id="st-str" class="stat-val"></span></div>
+        <div class="stat-row"><span class="stat-name agi">Agilidad</span><span id="st-agi" class="stat-val"></span></div>
+        <div class="stat-row"><span class="stat-name sta">Aguante</span><span id="st-sta" class="stat-val"></span></div>
+        <div class="stat-row"><span class="stat-name int">Intelecto</span><span id="st-int" class="stat-val"></span></div>
+        <div class="stat-row"><span class="stat-name spi">Espíritu</span><span id="st-spi" class="stat-val"></span></div>
+      </div>
+      <div class="stats-group">
+        <h3 class="stats-title">Ofensivo</h3>
+        <div class="stat-row"><span class="stat-name">Bon. daño</span><span id="st-sp" class="stat-val"></span></div>
+        <div class="stat-row"><span class="stat-name">Golpe crít.</span><span id="st-crit" class="stat-val"></span></div>
+        <div class="stat-row"><span class="stat-name">Celeridad</span><span id="st-haste" class="stat-val"></span></div>
+        <div class="stat-row"><span class="stat-name">Maestría</span><span id="st-mastery" class="stat-val"></span></div>
+      </div>
+      <div class="stats-group">
+        <h3 class="stats-title">Defensivo</h3>
+        <div class="stat-row"><span class="stat-name">Armadura</span><span id="st-armor" class="stat-val"></span></div>
+        <div class="stat-row"><span class="stat-name">Vida máx.</span><span id="st-health" class="stat-val"></span></div>
+        <div class="stat-row"><span class="stat-name" id="st-resource-label">Maná máx.</span><span id="st-resource" class="stat-val"></span></div>
+      </div>
+    </div>
+
+  </div><!-- /sheet -->
+
+</div><!-- /app -->
+
+<script src="character3d.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
