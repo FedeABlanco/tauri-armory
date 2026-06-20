@@ -127,6 +127,79 @@ app.use('/mv', async (req, res) => {
   }
 });
 
+// ─── NPC search (índice en memoria desde wago.tools) ──────────────────────────
+// wago.tools expone el DB2 Creature como CSV (~1.5MB, 23k filas). Lo bajamos una
+// vez, armamos un índice {id, name, classification, type} y servimos autocompletado.
+let npcIndex = null;       // array de {id, name, cls, type}
+let npcIndexPromise = null;
+
+// Parser CSV mínimo que respeta comillas (los nombres pueden tener comas).
+function parseCsvLine(line) {
+  const out = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inQ) {
+      if (c === '"') {
+        if (line[i + 1] === '"') { cur += '"'; i++; }
+        else inQ = false;
+      } else cur += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { out.push(cur); cur = ''; }
+      else cur += c;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+async function loadNpcIndex() {
+  const url = 'https://wago.tools/db2/Creature/csv';
+  const r = await globalThis.fetch(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124 Safari/537.36' },
+  });
+  if (!r.ok) throw new Error('wago.tools status ' + r.status);
+  const text = await r.text();
+  const lines = text.split('\n');
+  const idx = [];
+  // header: ID(0), Name_lang(1), ..., Classification(5), CreatureType(6), ..., DisplayID_0(9)
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i]) continue;
+    const c = parseCsvLine(lines[i]);
+    const id = parseInt(c[0]);
+    const name = (c[1] || '').trim();
+    if (!id || !name) continue;
+    idx.push({ id, name, cls: parseInt(c[5]) || 0, type: parseInt(c[6]) || 0 });
+  }
+  return idx;
+}
+
+app.get('/api/npc-search', async (req, res) => {
+  const q = (req.query.q || '').trim().toLowerCase();
+  if (q.length < 2) return res.json({ success: true, response: [] });
+
+  try {
+    if (!npcIndex) {
+      if (!npcIndexPromise) npcIndexPromise = loadNpcIndex();
+      npcIndex = await npcIndexPromise;
+    }
+  } catch (err) {
+    npcIndexPromise = null;
+    return res.status(502).json({ success: false, errorstring: 'No se pudo cargar la base de NPCs: ' + err.message });
+  }
+
+  const starts = [], contains = [];
+  for (const npc of npcIndex) {
+    const n = npc.name.toLowerCase();
+    if (n === q || n.startsWith(q)) starts.push(npc);
+    else if (n.includes(q)) contains.push(npc);
+    if (starts.length >= 15) break;
+  }
+  const results = starts.concat(contains).slice(0, 15);
+  res.json({ success: true, response: results });
+});
+
 // ─── PvP Arena Ladder ────────────────────────────────────────────────────────
 app.get('/api/pvp-ladder', async (req, res) => {
   const realm   = req.query.realm   || '[EN] Evermoon';

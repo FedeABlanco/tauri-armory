@@ -99,3 +99,33 @@ async function initCharacter3D(containerEl, p) {
 }
 
 window.initCharacter3D = initCharacter3D;
+
+// ─── Modelo 3D de un NPC (por id de criatura) ─────────────────────────────────
+let __npcViewer = null;
+
+async function initNpc3D(containerEl, npcId, type = 8) {  // 8 = NPC (criatura)
+  await waitForModelViewer();
+  shimWH();
+
+  const frame = containerEl || document.getElementById('npcModelFrame');
+  let mount = frame.querySelector('.model-3d');
+  if (!mount) {
+    mount = document.createElement('div');
+    mount.id = 'npcModel3d';
+    mount.className = 'model-3d';
+    frame.appendChild(mount);
+  }
+  mount.innerHTML = '';
+  if (__npcViewer && typeof __npcViewer.destroy === 'function') {
+    try { __npcViewer.destroy(); } catch (_) {}
+  }
+  __npcViewer = null;
+
+  const rect = frame.getBoundingClientRect();
+  const aspect = rect.width && rect.height ? rect.width / rect.height : 0.62;
+
+  __npcViewer = await window.generateModels(aspect, '#' + mount.id, { id: Number(npcId), type });
+  return __npcViewer;
+}
+
+window.initNpc3D = initNpc3D;

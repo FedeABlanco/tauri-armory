@@ -48,6 +48,8 @@
   <!-- TAB NAVIGATION -->
   <nav class="tab-nav">
     <button class="tab-btn active" data-tab="armory"      onclick="switchTab('armory')">⚔ Armería</button>
+    <button class="tab-btn"        data-tab="npc"         onclick="switchTab('npc')">🐉 Buscar NPC</button>
+    <button class="tab-btn"        data-tab="quests"      onclick="switchTab('quests')">📜 Misiones</button>
     <button class="tab-btn"        data-tab="leaderboard" onclick="switchTab('leaderboard')">🏆 Rankings</button>
     <button class="tab-btn"        data-tab="alts"        onclick="switchTab('alts')">👥 Alters</button>
     <button class="tab-btn"        data-tab="auction"     onclick="switchTab('auction')">📈 Economía</button>
@@ -165,6 +167,105 @@
 
 
   <!-- ══════════════════════════════════════════════════════
+       TAB: BUSCAR NPC
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-npc" class="tab-content hidden">
+    <div class="search-bar">
+      <div class="search-inner npc-search-inner">
+        <div class="autocomplete-wrap">
+          <input type="text" id="npcSearch" placeholder="Nombre del NPC (ej: Thrall) o ID..." autocomplete="off">
+          <div id="npcSuggestions" class="autocomplete-list hidden"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="npc-loading" class="status-msg hidden"><div class="spinner"></div><span>Cargando NPC...</span></div>
+    <div id="npc-error"   class="status-msg error hidden"></div>
+
+    <div id="npc-empty" class="status-msg" style="flex-direction:column;gap:16px;padding:60px 20px">
+      <span style="font-size:40px">🐉</span>
+      <span style="color:#8a7050;text-align:center;max-width:460px;line-height:1.5">Escribí el nombre de un NPC para ver su modelo 3D y dónde encontrarlo.<br>¿No aparece? Pegá su <strong>ID</strong> (el número en la URL de Wowhead) y Enter.</span>
+    </div>
+
+    <div id="npc-result" class="npc-result hidden">
+      <div class="sheet-header">
+        <div class="char-info">
+          <h1 id="npcName"></h1>
+          <p id="npcSub"></p>
+        </div>
+        <div class="char-ilvl">
+          <span class="ilvl-label">NPC ID</span>
+          <span id="npcId" class="ilvl-value"></span>
+        </div>
+      </div>
+
+      <div class="npc-body">
+        <div class="model-area">
+          <div class="model-frame" id="npcModelFrame">
+            <div class="model-glow"></div>
+          </div>
+        </div>
+
+        <div class="npc-info">
+          <h3 class="stats-title">Información</h3>
+          <div id="npcTooltip" class="npc-tooltip">
+            <span style="color:#8a7050">Cargando datos de Wowhead...</span>
+          </div>
+          <a id="npcWowheadBtn" href="#" target="_blank" rel="noopener" class="popup-wowhead-btn">
+            Ver ubicación y mapa en Wowhead →
+          </a>
+          <p class="npc-hint">El mapa interactivo con coordenadas se abre en Wowhead (en una pestaña nueva).</p>
+        </div>
+      </div>
+    </div>
+  </div><!-- /tab-npc -->
+
+
+  <!-- ══════════════════════════════════════════════════════
+       TAB: MISIONES
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-quests" class="tab-content hidden">
+    <div class="search-bar">
+      <div class="search-inner">
+        <input type="text" id="questSearch" placeholder="ID de la misión, o nombre para buscar en Wowhead...">
+        <button class="toolbar-btn" onclick="questGo()">Ver</button>
+      </div>
+    </div>
+
+    <div id="quest-empty" class="status-msg" style="flex-direction:column;gap:14px;padding:48px 20px">
+      <span style="font-size:40px">📜</span>
+      <span style="color:#8a7050;text-align:center;max-width:460px;line-height:1.5">
+        Pegá el <strong>ID</strong> de una misión (el número en la URL de Wowhead, ej:
+        <code style="color:#c8960c">quest=<u>40519</u></code>) para ver sus objetivos y recompensas.<br>
+        Si escribís un nombre, te abro la búsqueda en Wowhead.
+      </span>
+    </div>
+
+    <div id="quest-result" class="npc-result hidden">
+      <div class="sheet-header">
+        <div class="char-info">
+          <h1 id="questName">Misión</h1>
+          <p id="questSub"></p>
+        </div>
+        <div class="char-ilvl">
+          <span class="ilvl-label">Quest ID</span>
+          <span id="questId" class="ilvl-value"></span>
+        </div>
+      </div>
+      <div class="npc-info" style="max-width:100%">
+        <h3 class="stats-title">Detalles</h3>
+        <div id="questTooltip" class="npc-tooltip">
+          <span style="color:#8a7050">Cargando datos de Wowhead...</span>
+        </div>
+        <a id="questWowheadBtn" href="#" target="_blank" rel="noopener" class="popup-wowhead-btn">
+          Ver en Wowhead →
+        </a>
+      </div>
+    </div>
+  </div><!-- /tab-quests -->
+
+
+  <!-- ══════════════════════════════════════════════════════
        TAB 2: RANKINGS
   ══════════════════════════════════════════════════════ -->
   <div id="tab-leaderboard" class="tab-content hidden">
@@ -252,6 +353,8 @@
 
 <script src="character3d.js"></script>
 <script src="app.js"></script>
+<script src="npc.js"></script>
+<script src="quests.js"></script>
 <script src="leaderboard.js"></script>
 <script src="alts.js"></script>
 <script src="auction.js"></script>

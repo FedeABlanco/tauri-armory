@@ -823,6 +823,95 @@ body {
 .ah-time-med   { color: #ffd100; background: rgba(255,209,0,0.1); }
 .ah-time-long  { color: #1eff00; background: rgba(30,255,0,0.1);  }
 
+/* ===== AUTOCOMPLETE ===== */
+.npc-search-inner { max-width: 600px; }
+.autocomplete-wrap { position: relative; flex: 1; }
+.autocomplete-wrap input { width: 100%; }
+.autocomplete-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 150;
+  background: #120d04;
+  border: 1px solid #5a3e00;
+  border-radius: 4px;
+  max-height: 320px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+}
+.autocomplete-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(58,40,0,0.4);
+}
+.autocomplete-item:last-child { border-bottom: none; }
+.autocomplete-item:hover { background: rgba(200,150,12,0.12); }
+.ac-name { color: #e8d5a0; font-weight: bold; font-size: 13px; }
+.ac-meta { color: #8a7050; font-size: 11px; }
+.autocomplete-empty { padding: 10px 12px; color: #8a7050; font-size: 12px; line-height: 1.4; }
+
+/* ===== NPC / QUEST RESULT ===== */
+.npc-result {
+  background: linear-gradient(180deg, rgba(15,10,2,0.97) 0%, rgba(8,5,1,0.97) 100%);
+  border: 1px solid #5a3e00;
+  border-radius: 6px;
+  margin-top: 14px;
+  overflow: hidden;
+}
+.npc-result .sheet-header { margin-top: 0; border-radius: 0; }
+
+.npc-body {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
+  padding: 16px;
+}
+.npc-body .model-frame {
+  width: 100%;
+  height: 340px;
+}
+.npc-info { display: flex; flex-direction: column; gap: 10px; }
+.npc-info .stats-title { margin-bottom: 4px; }
+
+.npc-tooltip {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #e8d5a0;
+}
+.npc-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(58,40,0,0.3);
+}
+.npc-info-k { color: #8a7050; }
+.npc-info-v { color: #e8d5a0; font-weight: bold; }
+
+.npc-wh-link {
+  display: inline-block;
+  margin-top: 10px;
+  color: #c8960c;
+  text-decoration: none;
+  font-weight: bold;
+  border: 1px solid #3a2800;
+  border-radius: 4px;
+  padding: 8px 12px;
+  transition: all 0.15s;
+}
+.npc-wh-link:hover { border-color: #c8960c; background: rgba(200,150,12,0.1); }
+.quest-wh-link { display: block; text-align: center; font-size: 15px; }
+
+.npc-hint { color: #6a5030; font-size: 11px; margin-top: 8px; line-height: 1.4; }
+.npc-model-fail {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #8a7050; font-size: 12px; text-align: center; padding: 20px;
+}
+
 /* ===== RESPONSIVE — TABLET (≤ 700px) ===== */
 @media (max-width: 700px) {
   .app { padding: 0 4px 32px; }
@@ -880,6 +969,10 @@ body {
   .lb-summary-card { min-width: 100px; }
   .lb-summary-val { font-size: 18px; }
   .refresh-all-btn { width: auto; }
+
+  /* NPC: modelo arriba, info abajo */
+  .npc-body { grid-template-columns: 1fr; }
+  .npc-body .model-frame { height: 300px; max-width: 280px; margin: 0 auto; }
 }
 
 /* ===== RESPONSIVE — MÓVIL (≤ 480px) ===== */
