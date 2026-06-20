@@ -95,6 +95,38 @@ app.get('/api/tooltip', async (req, res) => {
   res.status(404).json({ error: 'tooltip no disponible' });
 });
 
+// ─── Model Viewer content proxy ───────────────────────────────────────────────
+// Wowhead/zamimg responde 403 a peticiones del navegador con header Origin, pero
+// 200 a peticiones server-side (sin Origin). Proxiamos el contenido del visor 3D
+// por nuestro propio origen para evitar el bloqueo CORS.
+const MV_BASE = 'https://wow.zamimg.com/modelviewer/live/';
+app.use('/mv', async (req, res) => {
+  const rest = req.url.replace(/^\/+/, '');     // ej: "meta/armor/1/19990.json"
+  const target = MV_BASE + rest;
+  // Usamos el fetch nativo de Node (undici): node-fetch v2 falla con "Premature close"
+  // contra el CDN de zamimg (HTTP/2 + compresión).
+  const nativeFetch = globalThis.fetch;
+  try {
+    const r = await nativeFetch(target, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Referer': 'https://www.wowhead.com/',
+        'Accept': '*/*',
+      },
+    });
+    if (!r.ok) return res.status(r.status).end();
+    const ct = r.headers.get('content-type');
+    const buf = Buffer.from(await r.arrayBuffer());
+    if (ct) res.set('Content-Type', ct);
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.set('Access-Control-Allow-Origin', '*');
+    res.send(buf);
+  } catch (err) {
+    console.error('MV proxy error:', target, err.message);
+    res.status(502).end();
+  }
+});
+
 // ─── PvP Arena Ladder ────────────────────────────────────────────────────────
 app.get('/api/pvp-ladder', async (req, res) => {
   const realm   = req.query.realm   || '[EN] Evermoon';

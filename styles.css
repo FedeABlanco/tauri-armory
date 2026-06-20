@@ -258,6 +258,20 @@ body {
   transition: opacity 0.3s;
 }
 
+/* 3D real character viewer (ZamModelViewer) */
+.model-3d {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+.model-3d canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  cursor: grab;
+}
+.model-3d canvas:active { cursor: grabbing; }
+
 #characterModel {
   position: absolute;
   bottom: 0;
