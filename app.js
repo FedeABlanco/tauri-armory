@@ -88,9 +88,24 @@ function startAutoRotate(img) {
   autoRaf = requestAnimationFrame(step);
 }
 
+// ─── TAB SWITCHING ───────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.remove('hidden');
+  document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+}
+
+function onRealmChange() {
+  // propagate global realm to per-tab selects
+  const realm = document.getElementById('globalRealm').value;
+  const altRealm = document.getElementById('altRealm');
+  if (altRealm) altRealm.value = realm;
+}
+
 // ─── MAIN FETCH ──────────────────────────────────────────────────────────────
 async function buscarPersonaje() {
-  const realm = document.getElementById('realm').value;
+  const realm = document.getElementById('globalRealm').value;
   const name = document.getElementById('characterName').value.trim();
 
   if (!name) { alert('Por favor, ingresa el nombre de un personaje.'); return; }
@@ -308,6 +323,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('characterName').addEventListener('keydown', e => {
     if (e.key === 'Enter') buscarPersonaje();
   });
+  document.getElementById('altName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') altAdd();
+  });
+  document.getElementById('ahSearch').addEventListener('keydown', e => {
+    if (e.key === 'Enter') ahLoad();
+  });
+  altRenderList();
 });
 
 // ─── TOUCH DETECTION ─────────────────────────────────────────────────────────

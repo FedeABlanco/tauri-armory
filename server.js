@@ -95,5 +95,70 @@ app.get('/api/tooltip', async (req, res) => {
   res.status(404).json({ error: 'tooltip no disponible' });
 });
 
+// ─── PvP Arena Ladder ────────────────────────────────────────────────────────
+app.get('/api/pvp-ladder', async (req, res) => {
+  const realm   = req.query.realm   || '[EN] Evermoon';
+  const bracket = req.query.bracket || '2v2';
+  const payload = {
+    secret: API_SECRET,
+    url: 'arena-ladder',
+    params: { r: realm, bracket, count: 100 },
+  };
+  try {
+    const response = await fetch(`${BASE_URL}?apikey=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ success: false, errorstring: err.message });
+  }
+});
+
+// ─── PvE Guild Rankings ───────────────────────────────────────────────────────
+app.get('/api/pve-rankings', async (req, res) => {
+  const realm   = req.query.realm || '[EN] Evermoon';
+  const payload = {
+    secret: API_SECRET,
+    url: 'guild-list',
+    params: { r: realm },
+  };
+  try {
+    const response = await fetch(`${BASE_URL}?apikey=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ success: false, errorstring: err.message });
+  }
+});
+
+// ─── Auction House ────────────────────────────────────────────────────────────
+app.get('/api/auction', async (req, res) => {
+  const realm = req.query.realm || '[EN] Evermoon';
+  const item  = req.query.item  || '';
+  const payload = {
+    secret: API_SECRET,
+    url: 'auction-house',
+    params: { r: realm, name: item },
+  };
+  try {
+    const response = await fetch(`${BASE_URL}?apikey=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ success: false, errorstring: err.message });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
