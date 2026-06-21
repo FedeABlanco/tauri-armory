@@ -47,12 +47,9 @@
 
   <!-- TAB NAVIGATION -->
   <nav class="tab-nav">
-    <button class="tab-btn active" data-tab="armory"      onclick="switchTab('armory')">⚔ Armería</button>
-    <button class="tab-btn"        data-tab="npc"         onclick="switchTab('npc')">🐉 Buscar NPC</button>
-    <button class="tab-btn"        data-tab="quests"      onclick="switchTab('quests')">📜 Misiones</button>
-    <button class="tab-btn"        data-tab="leaderboard" onclick="switchTab('leaderboard')">🏆 Rankings</button>
-    <button class="tab-btn"        data-tab="alts"        onclick="switchTab('alts')">👥 Alters</button>
-    <button class="tab-btn"        data-tab="auction"     onclick="switchTab('auction')">📈 Economía</button>
+    <button class="tab-btn active" data-tab="armory" onclick="switchTab('armory')">⚔ Armería</button>
+    <button class="tab-btn"        data-tab="npc"    onclick="switchTab('npc')">🐉 Buscar NPC</button>
+    <button class="tab-btn"        data-tab="quests" onclick="switchTab('quests')">📜 Misiones</button>
   </nav>
 
   <!-- ══════════════════════════════════════════════════════
@@ -203,6 +200,7 @@
         <div class="model-area">
           <div class="model-frame" id="npcModelFrame">
             <div class="model-glow"></div>
+            <img id="npcImage" class="npc-image hidden" alt="">
           </div>
         </div>
 
@@ -212,10 +210,15 @@
             <span style="color:#8a7050">Cargando datos de Wowhead...</span>
           </div>
           <a id="npcWowheadBtn" href="#" target="_blank" rel="noopener" class="popup-wowhead-btn">
-            Ver ubicación y mapa en Wowhead →
+            Ver en Wowhead →
           </a>
-          <p class="npc-hint">El mapa interactivo con coordenadas se abre en Wowhead (en una pestaña nueva).</p>
         </div>
+      </div>
+
+      <div id="npcLocation" class="npc-location hidden">
+        <h3 class="stats-title">Ubicación <span id="npcZone" class="npc-zone-name"></span></h3>
+        <div id="npcMap" class="npc-map"></div>
+        <p class="npc-hint">Puntos = ubicaciones donde aparece el NPC. El mapa completo y filtros, en Wowhead.</p>
       </div>
     </div>
   </div><!-- /tab-npc -->
@@ -264,72 +267,6 @@
     </div>
   </div><!-- /tab-quests -->
 
-
-  <!-- ══════════════════════════════════════════════════════
-       TAB 2: RANKINGS
-  ══════════════════════════════════════════════════════ -->
-  <div id="tab-leaderboard" class="tab-content hidden">
-    <div class="tab-toolbar">
-      <div class="sub-tabs">
-        <button class="sub-tab-btn active" data-sub="pvp2v2"  onclick="lbSwitchSub('pvp2v2')">Arena 2v2</button>
-        <button class="sub-tab-btn"        data-sub="pvp3v3"  onclick="lbSwitchSub('pvp3v3')">Arena 3v3</button>
-        <button class="sub-tab-btn"        data-sub="pve"     onclick="lbSwitchSub('pve')">Hermandades PvE</button>
-      </div>
-      <button class="toolbar-btn" onclick="lbLoad()">↺ Actualizar</button>
-    </div>
-
-    <div id="lb-loading" class="status-msg hidden"><div class="spinner"></div><span>Cargando rankings...</span></div>
-    <div id="lb-error"   class="status-msg error hidden"></div>
-    <div id="lb-content"></div>
-  </div><!-- /tab-leaderboard -->
-
-
-  <!-- ══════════════════════════════════════════════════════
-       TAB 3: ALTERS
-  ══════════════════════════════════════════════════════ -->
-  <div id="tab-alts" class="tab-content hidden">
-    <div class="tab-toolbar">
-      <div class="alts-add-row">
-        <input type="text" id="altName" placeholder="Nombre del personaje..." autocomplete="off">
-        <select id="altRealm">
-          <option value="[EN] Evermoon">[EN] Evermoon</option>
-          <option value="[HU] Tauri">[HU] Tauri</option>
-          <option value="[HU] Warriors of Darkness">[HU] WoD</option>
-        </select>
-        <button class="toolbar-btn" onclick="altAdd()">+ Agregar</button>
-      </div>
-      <button class="toolbar-btn refresh-all-btn" onclick="altRefreshAll()">↺ Actualizar todos</button>
-    </div>
-
-    <div id="alts-empty" class="status-msg hidden">
-      <span>No hay alters guardados. Agrega personajes arriba.</span>
-    </div>
-    <div id="alts-loading" class="status-msg hidden"><div class="spinner"></div><span>Actualizando alters...</span></div>
-    <div id="alts-content"></div>
-  </div><!-- /tab-alts -->
-
-
-  <!-- ══════════════════════════════════════════════════════
-       TAB 4: ECONOMÍA
-  ══════════════════════════════════════════════════════ -->
-  <div id="tab-auction" class="tab-content hidden">
-    <div class="tab-toolbar">
-      <div class="search-inner" style="max-width:100%">
-        <input type="text" id="ahSearch" placeholder="Nombre del ítem (ej: Flask of the...)">
-        <button class="toolbar-btn" onclick="ahLoad()">Buscar</button>
-      </div>
-    </div>
-
-    <div id="ah-loading" class="status-msg hidden"><div class="spinner"></div><span>Consultando Casa de Subastas...</span></div>
-    <div id="ah-error"   class="status-msg error hidden"></div>
-    <div id="ah-content">
-      <div class="status-msg" style="flex-direction:column;gap:16px;padding:60px 20px">
-        <span style="font-size:40px">📦</span>
-        <span style="color:#8a7050">Buscá un ítem para ver sus subastas activas y precios.</span>
-      </div>
-    </div>
-  </div><!-- /tab-auction -->
-
 </div><!-- /app -->
 
 <!-- MOBILE ITEM POPUP -->
@@ -355,8 +292,5 @@
 <script src="app.js"></script>
 <script src="npc.js"></script>
 <script src="quests.js"></script>
-<script src="leaderboard.js"></script>
-<script src="alts.js"></script>
-<script src="auction.js"></script>
 </body>
 </html>

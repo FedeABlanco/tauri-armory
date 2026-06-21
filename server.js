@@ -200,69 +200,43 @@ app.get('/api/npc-search', async (req, res) => {
   res.json({ success: true, response: results });
 });
 
-// ─── PvP Arena Ladder ────────────────────────────────────────────────────────
-app.get('/api/pvp-ladder', async (req, res) => {
-  const realm   = req.query.realm   || '[EN] Evermoon';
-  const bracket = req.query.bracket || '2v2';
-  const payload = {
-    secret: API_SECRET,
-    url: 'arena-ladder',
-    params: { r: realm, bracket, count: 100 },
-  };
-  try {
-    const response = await fetch(`${BASE_URL}?apikey=${API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ success: false, errorstring: err.message });
-  }
-});
+// ─── Zona: id → nombre (es) desde wago.tools AreaTable ────────────────────────
+let zoneMap = null;       // { [id]: nombre }
+let zonePromise = null;
 
-// ─── PvE Guild Rankings ───────────────────────────────────────────────────────
-app.get('/api/pve-rankings', async (req, res) => {
-  const realm   = req.query.realm || '[EN] Evermoon';
-  const payload = {
-    secret: API_SECRET,
-    url: 'guild-list',
-    params: { r: realm },
-  };
-  try {
-    const response = await fetch(`${BASE_URL}?apikey=${API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ success: false, errorstring: err.message });
+async function loadZoneMap() {
+  const url = 'https://wago.tools/db2/AreaTable/csv?locale=esES';
+  const r = await globalThis.fetch(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124 Safari/537.36' },
+  });
+  if (!r.ok) throw new Error('wago.tools status ' + r.status);
+  const text = await r.text();
+  const lines = text.split('\n');
+  const map = {};
+  // header: ID(0), ZoneName(1), AreaName_lang(2), ...
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i]) continue;
+    const c = parseCsvLine(lines[i]);
+    const id = parseInt(c[0]);
+    const name = (c[2] || '').trim();
+    if (id && name) map[id] = name;
   }
-});
+  return map;
+}
 
-// ─── Auction House ────────────────────────────────────────────────────────────
-app.get('/api/auction', async (req, res) => {
-  const realm = req.query.realm || '[EN] Evermoon';
-  const item  = req.query.item  || '';
-  const payload = {
-    secret: API_SECRET,
-    url: 'auction-house',
-    params: { r: realm, name: item },
-  };
+app.get('/api/zone-name', async (req, res) => {
+  const id = parseInt(req.query.id);
+  if (!id) return res.json({ success: true, name: null });
   try {
-    const response = await fetch(`${BASE_URL}?apikey=${API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await response.json();
-    res.json(data);
+    if (!zoneMap) {
+      if (!zonePromise) zonePromise = loadZoneMap();
+      zoneMap = await zonePromise;
+    }
   } catch (err) {
-    res.status(500).json({ success: false, errorstring: err.message });
+    zonePromise = null;
+    return res.json({ success: false, name: null });
   }
+  res.json({ success: true, name: zoneMap[id] || null });
 });
 
 const PORT = process.env.PORT || 3000;

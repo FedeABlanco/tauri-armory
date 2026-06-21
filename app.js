@@ -97,10 +97,7 @@ function switchTab(tab) {
 }
 
 function onRealmChange() {
-  // propagate global realm to per-tab selects
-  const realm = document.getElementById('globalRealm').value;
-  const altRealm = document.getElementById('altRealm');
-  if (altRealm) altRealm.value = realm;
+  // el realm global se usa en la búsqueda de personajes; nada más que propagar por ahora
 }
 
 // ─── MAIN FETCH ──────────────────────────────────────────────────────────────
@@ -323,13 +320,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('characterName').addEventListener('keydown', e => {
     if (e.key === 'Enter') buscarPersonaje();
   });
-  document.getElementById('altName').addEventListener('keydown', e => {
-    if (e.key === 'Enter') altAdd();
-  });
-  document.getElementById('ahSearch').addEventListener('keydown', e => {
-    if (e.key === 'Enter') ahLoad();
-  });
-  altRenderList();
 });
 
 // ─── TOUCH DETECTION ─────────────────────────────────────────────────────────
