@@ -49,6 +49,7 @@
   <nav class="tab-nav">
     <button class="tab-btn active" data-tab="armory" onclick="switchTab('armory')">⚔ Armería</button>
     <button class="tab-btn"        data-tab="npc"    onclick="switchTab('npc')">🐉 Buscar NPC</button>
+    <button class="tab-btn"        data-tab="item"   onclick="switchTab('item')">🗡 Buscar Ítem</button>
     <button class="tab-btn"        data-tab="quests" onclick="switchTab('quests')">📜 Misiones</button>
   </nav>
 
@@ -267,6 +268,48 @@
     </div>
   </div><!-- /tab-quests -->
 
+
+  <!-- ══════════════════════════════════════════════════════
+       TAB: BUSCAR ÍTEM
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-item" class="tab-content hidden">
+    <div class="search-bar">
+      <div class="search-inner npc-search-inner">
+        <div class="autocomplete-wrap">
+          <input type="text" id="itemSearch" placeholder="Nombre del ítem (ej: Lingote de hierro) o ID..." autocomplete="off">
+          <div id="itemSuggestions" class="autocomplete-list hidden"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="item-empty" class="status-msg" style="flex-direction:column;gap:16px;padding:60px 20px">
+      <span style="font-size:40px">🗡</span>
+      <span style="color:#8a7050;text-align:center;max-width:480px;line-height:1.5">Buscá cualquier ítem: materiales de crafteo, armas, armaduras, gemas…<br>¿No aparece? Pegá su <strong>ID</strong> (el número en la URL de Wowhead) y Enter.</span>
+    </div>
+
+    <div id="item-result" class="npc-result hidden">
+      <div class="sheet-header">
+        <div class="item-head-icon"><img id="itemIcon" src="" alt=""></div>
+        <div class="char-info">
+          <h1 id="itemName"></h1>
+          <p id="itemSub"></p>
+        </div>
+        <div class="char-ilvl">
+          <span class="ilvl-label">Item ID</span>
+          <span id="itemId" class="ilvl-value"></span>
+        </div>
+      </div>
+      <div class="npc-info" style="max-width:100%">
+        <div id="itemTooltip" class="npc-tooltip">
+          <span style="color:#8a7050">Cargando datos de Wowhead...</span>
+        </div>
+        <a id="itemWowheadBtn" href="#" target="_blank" rel="noopener" class="popup-wowhead-btn">
+          Ver en Wowhead →
+        </a>
+      </div>
+    </div>
+  </div><!-- /tab-item -->
+
 </div><!-- /app -->
 
 <!-- MOBILE ITEM POPUP -->
@@ -292,5 +335,6 @@
 <script src="app.js"></script>
 <script src="npc.js"></script>
 <script src="quests.js"></script>
+<script src="item.js"></script>
 </body>
 </html>

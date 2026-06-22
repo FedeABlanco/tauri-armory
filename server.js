@@ -1,6 +1,8 @@
 const express = require('express');
 const fetch = require('node-fetch');
 const path = require('path');
+const fs = require('fs');
+const zlib = require('zlib');
 
 const app = express();
 app.use(express.json());
@@ -154,6 +156,11 @@ function parseCsvLine(line) {
   return out;
 }
 
+// Normaliza para búsqueda: minúsculas + sin acentos.
+function norm(s) {
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
 async function loadNpcIndex() {
   const url = 'https://wago.tools/db2/Creature/csv';
   const r = await globalThis.fetch(url, {
@@ -170,13 +177,26 @@ async function loadNpcIndex() {
     const id = parseInt(c[0]);
     const name = (c[1] || '').trim();
     if (!id || !name) continue;
-    idx.push({ id, name, cls: parseInt(c[5]) || 0, type: parseInt(c[6]) || 0 });
+    idx.push({ id, name, norm: norm(name), cls: parseInt(c[5]) || 0, type: parseInt(c[6]) || 0 });
   }
   return idx;
 }
 
+// Búsqueda genérica sobre un índice [{name, norm, ...}] (startsWith primero, luego includes).
+function searchIndex(index, query, limit) {
+  const q = norm(query);
+  const starts = [], contains = [];
+  for (const it of index) {
+    const n = it.norm;
+    if (n.startsWith(q)) starts.push(it);
+    else if (n.includes(q)) contains.push(it);
+    if (starts.length >= limit) break;
+  }
+  return starts.concat(contains).slice(0, limit);
+}
+
 app.get('/api/npc-search', async (req, res) => {
-  const q = (req.query.q || '').trim().toLowerCase();
+  const q = (req.query.q || '').trim();
   if (q.length < 2) return res.json({ success: true, response: [] });
 
   try {
@@ -189,14 +209,45 @@ app.get('/api/npc-search', async (req, res) => {
     return res.status(502).json({ success: false, errorstring: 'No se pudo cargar la base de NPCs: ' + err.message });
   }
 
-  const starts = [], contains = [];
-  for (const npc of npcIndex) {
-    const n = npc.name.toLowerCase();
-    if (n === q || n.startsWith(q)) starts.push(npc);
-    else if (n.includes(q)) contains.push(npc);
-    if (starts.length >= 15) break;
+  const results = searchIndex(npcIndex, q, 15).map(({ id, name, cls, type }) => ({ id, name, cls, type }));
+  res.json({ success: true, response: results });
+});
+
+// ─── Item search (índice bundleado items-es.tsv.gz) ───────────────────────────
+let itemIndex = null;
+let itemIndexPromise = null;
+
+async function loadItemIndex() {
+  const buf = fs.readFileSync(path.join(__dirname, 'data', 'items-es.tsv.gz'));
+  const tsv = zlib.gunzipSync(buf).toString('utf8');
+  const lines = tsv.split('\n');
+  const idx = [];
+  for (const line of lines) {
+    const tab = line.indexOf('\t');
+    if (tab < 1) continue;
+    const id = parseInt(line.slice(0, tab));
+    const name = line.slice(tab + 1);
+    if (!id || !name) continue;
+    idx.push({ id, name, norm: norm(name) });
   }
-  const results = starts.concat(contains).slice(0, 15);
+  return idx;
+}
+
+app.get('/api/item-search', async (req, res) => {
+  const q = (req.query.q || '').trim();
+  if (q.length < 2) return res.json({ success: true, response: [] });
+
+  try {
+    if (!itemIndex) {
+      if (!itemIndexPromise) itemIndexPromise = loadItemIndex();
+      itemIndex = await itemIndexPromise;
+    }
+  } catch (err) {
+    itemIndexPromise = null;
+    return res.status(502).json({ success: false, errorstring: 'No se pudo cargar la base de ítems: ' + err.message });
+  }
+
+  const results = searchIndex(itemIndex, q, 20).map(({ id, name }) => ({ id, name }));
   res.json({ success: true, response: results });
 });
 
