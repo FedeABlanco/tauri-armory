@@ -1,21 +1,11 @@
 // ─── BUSCAR NPC ───────────────────────────────────────────────────────────────
-const NPC_WOWHEAD = 'https://es.wowhead.com/npc=';
-// nether.wowhead.com permite CORS desde el navegador (locale 6 = español)
-const NETHER = 'https://nether.wowhead.com/tooltip';
 const ZAM_THUMB = 'https://wow.zamimg.com/modelviewer/live/webthumbs/npc';
-const ZAM_MAP_ES = 'https://wow.zamimg.com/images/wow/maps/eses/original';
-const ZAM_MAP_EN = 'https://wow.zamimg.com/images/wow/maps/enus/original';
-
-const CREATURE_TYPES = {
-  1: 'Bestia', 2: 'Dragón', 3: 'Demonio', 4: 'Elemental', 5: 'Gigante',
-  6: 'No-muerto', 7: 'Humanoide', 8: 'Alimaña', 9: 'Mecánico', 10: 'Indefinido',
-  11: 'Tótem', 12: 'Mascota', 13: 'Nube de gas', 14: 'Mascota salvaje', 15: 'Aberración',
-};
-const CREATURE_CLASS = {
-  0: 'Normal', 1: 'Élite', 2: 'Raro élite', 3: 'Jefe de banda', 4: 'Raro',
-};
+const ZAM_MAPS  = 'https://wow.zamimg.com/images/wow/maps';
 
 let npcSearchTimer = null;
+let currentNpc = null;
+
+function npcWowheadUrl(id) { return `https://${i18n.whDomain()}/npc=${id}`; }
 
 function npcInit() {
   const input = document.getElementById('npcSearch');
@@ -37,7 +27,7 @@ function npcInit() {
   });
 
   document.addEventListener('click', e => {
-    if (!e.target.closest('.autocomplete-wrap')) npcHideSuggestions();
+    if (!e.target.closest('#tab-npc .autocomplete-wrap')) npcHideSuggestions();
   });
 }
 
@@ -48,7 +38,7 @@ function openNpcById(id) {
 
 async function npcFetchSuggestions(q) {
   try {
-    const res  = await fetch(`/api/npc-search?q=${encodeURIComponent(q)}`);
+    const res  = await fetch(`/api/npc-search?q=${encodeURIComponent(q)}&lang=${i18n.lang}`);
     const data = await res.json();
     if (!data.success) throw new Error(data.errorstring || 'error');
     npcRenderSuggestions(data.response || []);
@@ -60,7 +50,7 @@ async function npcFetchSuggestions(q) {
 function npcRenderSuggestions(list) {
   const box = document.getElementById('npcSuggestions');
   if (!list.length) {
-    box.innerHTML = '<div class="autocomplete-empty">Sin resultados. Si sabés el ID (de la URL de Wowhead), pegalo y Enter.</div>';
+    box.innerHTML = `<div class="autocomplete-empty">${i18n.t('ac.empty')}</div>`;
     box.classList.remove('hidden');
     return;
   }
@@ -68,10 +58,10 @@ function npcRenderSuggestions(list) {
   list.forEach(npc => {
     const item = document.createElement('div');
     item.className = 'autocomplete-item';
-    const typeLabel = CREATURE_TYPES[npc.type] || '';
+    const typeLabel = npc.type ? i18n.creatureType(npc.type) : '';
     item.innerHTML = `
       <span class="ac-name">${escapeHtml(npc.name)}</span>
-      <span class="ac-meta">${typeLabel}${npc.cls ? ' · ' + (CREATURE_CLASS[npc.cls] || '') : ''} · #${npc.id}</span>`;
+      <span class="ac-meta">${typeLabel}${npc.cls ? ' · ' + i18n.creatureClass(npc.cls) : ''} · #${npc.id}</span>`;
     item.addEventListener('click', () => {
       document.getElementById('npcSearch').value = npc.name;
       npcHideSuggestions();
@@ -87,18 +77,22 @@ function npcHideSuggestions() {
   if (box) { box.classList.add('hidden'); box.innerHTML = ''; }
 }
 
+function npcSubText(npc) {
+  if (npc.type == null) return '';
+  return `${i18n.creatureType(npc.type)}${npc.cls ? ' · ' + i18n.creatureClass(npc.cls) : ''}`;
+}
+
 function openNpc(npc) {
+  currentNpc = npc;
   document.getElementById('npc-empty').classList.add('hidden');
   document.getElementById('npc-error').classList.add('hidden');
   document.getElementById('npc-result').classList.remove('hidden');
 
   document.getElementById('npcName').textContent = npc.name;
   document.getElementById('npcId').textContent = npc.id;
-  const sub = npc.type == null ? '' :
-    `${CREATURE_TYPES[npc.type] || 'NPC'}${npc.cls ? ' · ' + (CREATURE_CLASS[npc.cls] || '') : ''}`;
-  document.getElementById('npcSub').textContent = sub;
-  document.getElementById('npcWowheadBtn').href = `${NPC_WOWHEAD}${npc.id}`;
-  document.getElementById('npcTooltip').innerHTML = '<span style="color:#8a7050">Cargando datos de Wowhead...</span>';
+  document.getElementById('npcSub').textContent = npcSubText(npc);
+  document.getElementById('npcWowheadBtn').href = npcWowheadUrl(npc.id);
+  document.getElementById('npcTooltip').innerHTML = `<span style="color:#8a7050">${i18n.t('npc.loadingWH')}</span>`;
   document.getElementById('npcLocation').classList.add('hidden');
   document.getElementById('npcMap').innerHTML = '';
   document.getElementById('npcZone').textContent = '';
@@ -114,7 +108,6 @@ function renderNpcModel(id) {
   if (mount) mount.innerHTML = '';
   frame.querySelector('.npc-model-fail')?.remove();
 
-  // imagen de respaldo (queda detrás; si el 3D carga, el canvas la tapa)
   const img = document.getElementById('npcImage');
   img.classList.remove('hidden');
   img.src = `${ZAM_THUMB}/${id % 256}/${id}.png`;
@@ -123,9 +116,8 @@ function renderNpcModel(id) {
   if (typeof initNpc3D === 'function') {
     initNpc3D(frame, id).catch(err => {
       console.warn('NPC 3D no disponible, usando imagen:', err);
-      // si tampoco hay imagen, mostrar aviso
       if (img.classList.contains('hidden')) {
-        frame.insertAdjacentHTML('beforeend', '<div class="npc-model-fail">Sin modelo 3D ni imagen para este NPC.</div>');
+        frame.insertAdjacentHTML('beforeend', `<div class="npc-model-fail">${i18n.t('npc.noModel')}</div>`);
       }
     });
   }
@@ -133,12 +125,11 @@ function renderNpcModel(id) {
 
 async function fetchNpcDetails(id) {
   try {
-    const r = await fetch(`${NETHER}/npc/${id}?locale=6`, { mode: 'cors' });
+    const r = await fetch(`https://nether.wowhead.com/tooltip/npc/${id}?locale=${i18n.whLocale()}`, { mode: 'cors' });
     const data = await r.json();
 
     if (data.name) document.getElementById('npcName').textContent = data.name;
 
-    // tooltip: quitamos la fila del nombre (ya está en el título)
     let tipHtml = '';
     if (data.tooltip) {
       const tmp = document.createElement('div');
@@ -147,12 +138,12 @@ async function fetchNpcDetails(id) {
       tipHtml = tmp.innerHTML.trim();
     }
     document.getElementById('npcTooltip').innerHTML =
-      tipHtml || '<span style="color:#8a7050">Sin datos adicionales en Wowhead.</span>';
+      tipHtml || `<span style="color:#8a7050">${i18n.t('npc.noData')}</span>`;
 
     if (data.map && data.map.zone) renderNpcMap(data.map);
   } catch (err) {
     document.getElementById('npcTooltip').innerHTML =
-      '<span style="color:#8a7050">No se pudieron cargar los datos. Usá el botón para verlo en Wowhead.</span>';
+      `<span style="color:#8a7050">${i18n.t('npc.loadFail')}</span>`;
   }
 }
 
@@ -163,18 +154,19 @@ async function renderNpcMap(map) {
   const coords = (firstKey != null ? coordsObj[firstKey] : []) || [];
   if (!zone) return;
 
-  // nombre de zona (es) desde nuestro proxy de AreaTable
   try {
-    const zr = await fetch(`/api/zone-name?id=${zone}`);
+    const zr = await fetch(`/api/zone-name?id=${zone}&lang=${i18n.lang}`);
     const zd = await zr.json();
     document.getElementById('npcZone').textContent = zd.name ? `— ${zd.name}` : '';
   } catch (_) {}
 
   const mapDiv = document.getElementById('npcMap');
+  mapDiv.innerHTML = '';
   const imgEl = document.createElement('img');
   imgEl.className = 'npc-map-img';
-  imgEl.src = `${ZAM_MAP_ES}/${zone}.jpg`;
-  imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = `${ZAM_MAP_EN}/${zone}.jpg`; };
+  const loc = i18n.mapLoc();
+  imgEl.src = `${ZAM_MAPS}/${loc}/original/${zone}.jpg`;
+  imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = `${ZAM_MAPS}/enus/original/${zone}.jpg`; };
   mapDiv.appendChild(imgEl);
 
   coords.slice(0, 50).forEach(pair => {
@@ -189,6 +181,14 @@ async function renderNpcMap(map) {
 
   document.getElementById('npcLocation').classList.remove('hidden');
 }
+
+// Al cambiar de idioma: re-etiquetar y recargar datos (sin recargar el modelo 3D)
+i18n.onLangChange(() => {
+  if (!currentNpc) return;
+  document.getElementById('npcSub').textContent = npcSubText(currentNpc);
+  document.getElementById('npcWowheadBtn').href = npcWowheadUrl(currentNpc.id);
+  fetchNpcDetails(currentNpc.id);
+});
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));

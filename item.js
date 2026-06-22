@@ -1,18 +1,14 @@
 // ─── BUSCAR ÍTEM ──────────────────────────────────────────────────────────────
-const ITEM_WOWHEAD = 'https://es.wowhead.com/item=';
-const NETHER_I     = 'https://nether.wowhead.com/tooltip/item';
-const ICON_BASE_I  = 'https://wow.zamimg.com/images/wow/icons/large/';
-
+const ICON_BASE_I = 'https://wow.zamimg.com/images/wow/icons/large/';
 const QUALITY_COLOR_I = {
   0: '#9d9d9d', 1: '#ffffff', 2: '#1eff00', 3: '#0070dd',
   4: '#a335ee', 5: '#ff8000', 6: '#e6cc80', 7: '#e6cc80',
 };
-const QUALITY_NAME_I = {
-  0: 'Pobre', 1: 'Común', 2: 'Poco común', 3: 'Poco común',
-  4: 'Épico', 5: 'Legendario', 6: 'Artefacto', 7: 'Patrimonio',
-};
 
 let itemSearchTimer = null;
+let currentItemId = null;
+
+function itemWowheadUrl(id) { return `https://${i18n.whDomain()}/item=${id}`; }
 
 function itemInit() {
   const input = document.getElementById('itemSearch');
@@ -40,7 +36,7 @@ function itemInit() {
 
 async function itemFetchSuggestions(q) {
   try {
-    const res  = await fetch(`/api/item-search?q=${encodeURIComponent(q)}`);
+    const res  = await fetch(`/api/item-search?q=${encodeURIComponent(q)}&lang=${i18n.lang}`);
     const data = await res.json();
     if (!data.success) throw new Error(data.errorstring || 'error');
     itemRenderSuggestions(data.response || []);
@@ -52,7 +48,7 @@ async function itemFetchSuggestions(q) {
 function itemRenderSuggestions(list) {
   const box = document.getElementById('itemSuggestions');
   if (!list.length) {
-    box.innerHTML = '<div class="autocomplete-empty">Sin resultados. Si sabés el ID (de la URL de Wowhead), pegalo y Enter.</div>';
+    box.innerHTML = `<div class="autocomplete-empty">${i18n.t('ac.empty')}</div>`;
     box.classList.remove('hidden');
     return;
   }
@@ -77,20 +73,21 @@ function itemHideSuggestions() {
 }
 
 async function openItem(id, name) {
+  currentItemId = id;
   document.getElementById('item-empty').classList.add('hidden');
   document.getElementById('item-result').classList.remove('hidden');
 
-  document.getElementById('itemName').textContent = name || `Ítem #${id}`;
+  document.getElementById('itemName').textContent = name || `${i18n.lang === 'es' ? 'Ítem' : 'Item'} #${id}`;
   document.getElementById('itemName').style.color = '';
   document.getElementById('itemId').textContent = id;
   document.getElementById('itemSub').textContent = '';
-  document.getElementById('itemWowheadBtn').href = `${ITEM_WOWHEAD}${id}`;
-  document.getElementById('itemIcon').src = 'https://wow.zamimg.com/images/wow/icons/large/inv_misc_questionmark.jpg';
+  document.getElementById('itemWowheadBtn').href = itemWowheadUrl(id);
+  document.getElementById('itemIcon').src = `${ICON_BASE_I}inv_misc_questionmark.jpg`;
   document.getElementById('itemIcon').style.borderColor = '#3a2800';
-  document.getElementById('itemTooltip').innerHTML = '<span style="color:#8a7050">Cargando datos de Wowhead...</span>';
+  document.getElementById('itemTooltip').innerHTML = `<span style="color:#8a7050">${i18n.t('item.loadingWH')}</span>`;
 
   try {
-    const r = await fetch(`${NETHER_I}/${id}?locale=6`, { mode: 'cors' });
+    const r = await fetch(`https://nether.wowhead.com/tooltip/item/${id}?locale=${i18n.whLocale()}`, { mode: 'cors' });
     const data = await r.json();
 
     const q = data.quality ?? 1;
@@ -100,7 +97,7 @@ async function openItem(id, name) {
       document.getElementById('itemName').textContent = data.name;
       document.getElementById('itemName').style.color = color;
     }
-    document.getElementById('itemSub').textContent = QUALITY_NAME_I[q] || '';
+    document.getElementById('itemSub').textContent = i18n.quality(q);
 
     if (data.icon) {
       const icon = document.getElementById('itemIcon');
@@ -116,12 +113,15 @@ async function openItem(id, name) {
       tipHtml = tmp.innerHTML.trim();
     }
     document.getElementById('itemTooltip').innerHTML =
-      tipHtml || '<span style="color:#8a7050">Sin datos en Wowhead para este ítem.</span>';
+      tipHtml || `<span style="color:#8a7050">${i18n.t('item.noData')}</span>`;
   } catch (err) {
     document.getElementById('itemTooltip').innerHTML =
-      '<span style="color:#8a7050">No se pudieron cargar los datos. Usá el botón para verlo en Wowhead.</span>';
+      `<span style="color:#8a7050">${i18n.t('item.loadFail')}</span>`;
   }
 }
+
+// Al cambiar de idioma: recargar el ítem actual en el nuevo idioma
+i18n.onLangChange(() => { if (currentItemId) openItem(currentItemId); });
 
 function escapeHtmlI(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));

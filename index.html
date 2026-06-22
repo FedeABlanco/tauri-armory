@@ -43,14 +43,18 @@
       <option value="[HU] Tauri">[HU] Tauri</option>
       <option value="[HU] Warriors of Darkness">[HU] WoD</option>
     </select>
+    <select id="langSel" class="lang-sel" onchange="i18n.setLang(this.value)" title="Idioma / Language">
+      <option value="es">ES</option>
+      <option value="en">EN</option>
+    </select>
   </div>
 
   <!-- TAB NAVIGATION -->
   <nav class="tab-nav">
-    <button class="tab-btn active" data-tab="armory" onclick="switchTab('armory')">⚔ Armería</button>
-    <button class="tab-btn"        data-tab="npc"    onclick="switchTab('npc')">🐉 Buscar NPC</button>
-    <button class="tab-btn"        data-tab="item"   onclick="switchTab('item')">🗡 Buscar Ítem</button>
-    <button class="tab-btn"        data-tab="quests" onclick="switchTab('quests')">📜 Misiones</button>
+    <button class="tab-btn active" data-tab="armory" data-i18n="nav.armory" onclick="switchTab('armory')">⚔ Armería</button>
+    <button class="tab-btn"        data-tab="npc"    data-i18n="nav.npc"    onclick="switchTab('npc')">🐉 Buscar NPC</button>
+    <button class="tab-btn"        data-tab="item"   data-i18n="nav.item"   onclick="switchTab('item')">🗡 Buscar Ítem</button>
+    <button class="tab-btn"        data-tab="quests" data-i18n="nav.quests" onclick="switchTab('quests')">📜 Misiones</button>
   </nav>
 
   <!-- ══════════════════════════════════════════════════════
@@ -60,14 +64,14 @@
 
     <div class="search-bar">
       <div class="search-inner">
-        <input type="text" id="characterName" placeholder="Nombre del personaje..." autocomplete="off">
-        <button id="searchBtn" onclick="buscarPersonaje()">Buscar</button>
+        <input type="text" id="characterName" data-i18n-ph="search.char" placeholder="Nombre del personaje..." autocomplete="off">
+        <button id="searchBtn" data-i18n="search.btn" onclick="buscarPersonaje()">Buscar</button>
       </div>
     </div>
 
     <div id="loading" class="status-msg hidden">
       <div class="spinner"></div>
-      <span>Consultando la Armería de Tauri...</span>
+      <span data-i18n="loading.char">Consultando la Armería de Tauri...</span>
     </div>
     <div id="errorMsg" class="status-msg error hidden"></div>
 
@@ -81,7 +85,7 @@
           <p id="hdrSub"></p>
         </div>
         <div class="char-ilvl">
-          <span class="ilvl-label">iLvl promedio</span>
+          <span class="ilvl-label" data-i18n="ilvl.avg">iLvl promedio</span>
           <span id="hdrIlvl" class="ilvl-value"></span>
         </div>
       </div>
@@ -108,7 +112,7 @@
           </div>
           <div class="model-bars">
             <div class="bar-row">
-              <span class="bar-label">Vida</span>
+              <span class="bar-label" data-i18n="bar.health">Vida</span>
               <div class="bar health-bar"><div id="barHealth" class="bar-fill"></div></div>
               <span id="valHealth" class="bar-val"></span>
             </div>
@@ -139,24 +143,24 @@
 
       <div class="stats-panel">
         <div class="stats-group">
-          <h3 class="stats-title">Atributos</h3>
-          <div class="stat-row"><span class="stat-name str">Fuerza</span><span id="st-str" class="stat-val"></span></div>
-          <div class="stat-row"><span class="stat-name agi">Agilidad</span><span id="st-agi" class="stat-val"></span></div>
-          <div class="stat-row"><span class="stat-name sta">Aguante</span><span id="st-sta" class="stat-val"></span></div>
-          <div class="stat-row"><span class="stat-name int">Intelecto</span><span id="st-int" class="stat-val"></span></div>
-          <div class="stat-row"><span class="stat-name spi">Espíritu</span><span id="st-spi" class="stat-val"></span></div>
+          <h3 class="stats-title" data-i18n="stats.attrs">Atributos</h3>
+          <div class="stat-row"><span class="stat-name str" data-i18n="stat.str">Fuerza</span><span id="st-str" class="stat-val"></span></div>
+          <div class="stat-row"><span class="stat-name agi" data-i18n="stat.agi">Agilidad</span><span id="st-agi" class="stat-val"></span></div>
+          <div class="stat-row"><span class="stat-name sta" data-i18n="stat.sta">Aguante</span><span id="st-sta" class="stat-val"></span></div>
+          <div class="stat-row"><span class="stat-name int" data-i18n="stat.int">Intelecto</span><span id="st-int" class="stat-val"></span></div>
+          <div class="stat-row"><span class="stat-name spi" data-i18n="stat.spi">Espíritu</span><span id="st-spi" class="stat-val"></span></div>
         </div>
         <div class="stats-group">
-          <h3 class="stats-title">Ofensivo</h3>
-          <div class="stat-row"><span class="stat-name">Bon. daño</span><span id="st-sp" class="stat-val"></span></div>
-          <div class="stat-row"><span class="stat-name">Golpe crít.</span><span id="st-crit" class="stat-val"></span></div>
-          <div class="stat-row"><span class="stat-name">Celeridad</span><span id="st-haste" class="stat-val"></span></div>
-          <div class="stat-row"><span class="stat-name">Maestría</span><span id="st-mastery" class="stat-val"></span></div>
+          <h3 class="stats-title" data-i18n="stats.off">Ofensivo</h3>
+          <div class="stat-row"><span class="stat-name" data-i18n="stat.sp">Bon. daño</span><span id="st-sp" class="stat-val"></span></div>
+          <div class="stat-row"><span class="stat-name" data-i18n="stat.crit">Golpe crít.</span><span id="st-crit" class="stat-val"></span></div>
+          <div class="stat-row"><span class="stat-name" data-i18n="stat.haste">Celeridad</span><span id="st-haste" class="stat-val"></span></div>
+          <div class="stat-row"><span class="stat-name" data-i18n="stat.mastery">Maestría</span><span id="st-mastery" class="stat-val"></span></div>
         </div>
         <div class="stats-group">
-          <h3 class="stats-title">Defensivo</h3>
-          <div class="stat-row"><span class="stat-name">Armadura</span><span id="st-armor" class="stat-val"></span></div>
-          <div class="stat-row"><span class="stat-name">Vida máx.</span><span id="st-health" class="stat-val"></span></div>
+          <h3 class="stats-title" data-i18n="stats.def">Defensivo</h3>
+          <div class="stat-row"><span class="stat-name" data-i18n="stat.armor">Armadura</span><span id="st-armor" class="stat-val"></span></div>
+          <div class="stat-row"><span class="stat-name" data-i18n="stat.maxhealth">Vida máx.</span><span id="st-health" class="stat-val"></span></div>
           <div class="stat-row"><span class="stat-name" id="st-resource-label">Maná máx.</span><span id="st-resource" class="stat-val"></span></div>
         </div>
       </div>
@@ -171,18 +175,18 @@
     <div class="search-bar">
       <div class="search-inner npc-search-inner">
         <div class="autocomplete-wrap">
-          <input type="text" id="npcSearch" placeholder="Nombre del NPC (ej: Thrall) o ID..." autocomplete="off">
+          <input type="text" id="npcSearch" data-i18n-ph="npc.ph" placeholder="Nombre del NPC (ej: Thrall) o ID..." autocomplete="off">
           <div id="npcSuggestions" class="autocomplete-list hidden"></div>
         </div>
       </div>
     </div>
 
-    <div id="npc-loading" class="status-msg hidden"><div class="spinner"></div><span>Cargando NPC...</span></div>
+    <div id="npc-loading" class="status-msg hidden"><div class="spinner"></div><span data-i18n="npc.loading">Cargando NPC...</span></div>
     <div id="npc-error"   class="status-msg error hidden"></div>
 
     <div id="npc-empty" class="status-msg" style="flex-direction:column;gap:16px;padding:60px 20px">
       <span style="font-size:40px">🐉</span>
-      <span style="color:#8a7050;text-align:center;max-width:460px;line-height:1.5">Escribí el nombre de un NPC para ver su modelo 3D y dónde encontrarlo.<br>¿No aparece? Pegá su <strong>ID</strong> (el número en la URL de Wowhead) y Enter.</span>
+      <span style="color:#8a7050;text-align:center;max-width:460px;line-height:1.5" data-i18n-html="npc.empty"></span>
     </div>
 
     <div id="npc-result" class="npc-result hidden">
@@ -206,20 +210,20 @@
         </div>
 
         <div class="npc-info">
-          <h3 class="stats-title">Información</h3>
+          <h3 class="stats-title" data-i18n="npc.info">Información</h3>
           <div id="npcTooltip" class="npc-tooltip">
-            <span style="color:#8a7050">Cargando datos de Wowhead...</span>
+            <span style="color:#8a7050" data-i18n="npc.loadingWH">Cargando datos de Wowhead...</span>
           </div>
-          <a id="npcWowheadBtn" href="#" target="_blank" rel="noopener" class="popup-wowhead-btn">
+          <a id="npcWowheadBtn" href="#" target="_blank" rel="noopener" class="popup-wowhead-btn" data-i18n="npc.wowhead">
             Ver en Wowhead →
           </a>
         </div>
       </div>
 
       <div id="npcLocation" class="npc-location hidden">
-        <h3 class="stats-title">Ubicación <span id="npcZone" class="npc-zone-name"></span></h3>
+        <h3 class="stats-title"><span data-i18n="npc.location">Ubicación</span> <span id="npcZone" class="npc-zone-name"></span></h3>
         <div id="npcMap" class="npc-map"></div>
-        <p class="npc-hint">Puntos = ubicaciones donde aparece el NPC. El mapa completo y filtros, en Wowhead.</p>
+        <p class="npc-hint" data-i18n="npc.maphint">Puntos = ubicaciones donde aparece el NPC. El mapa completo y filtros, en Wowhead.</p>
       </div>
     </div>
   </div><!-- /tab-npc -->
@@ -231,18 +235,14 @@
   <div id="tab-quests" class="tab-content hidden">
     <div class="search-bar">
       <div class="search-inner">
-        <input type="text" id="questSearch" placeholder="ID de la misión, o nombre para buscar en Wowhead...">
-        <button class="toolbar-btn" onclick="questGo()">Ver</button>
+        <input type="text" id="questSearch" data-i18n-ph="quest.ph" placeholder="ID de la misión, o nombre para buscar en Wowhead...">
+        <button class="toolbar-btn" data-i18n="quest.btn" onclick="questGo()">Ver</button>
       </div>
     </div>
 
     <div id="quest-empty" class="status-msg" style="flex-direction:column;gap:14px;padding:48px 20px">
       <span style="font-size:40px">📜</span>
-      <span style="color:#8a7050;text-align:center;max-width:460px;line-height:1.5">
-        Pegá el <strong>ID</strong> de una misión (el número en la URL de Wowhead, ej:
-        <code style="color:#c8960c">quest=<u>40519</u></code>) para ver sus objetivos y recompensas.<br>
-        Si escribís un nombre, te abro la búsqueda en Wowhead.
-      </span>
+      <span style="color:#8a7050;text-align:center;max-width:460px;line-height:1.5" data-i18n-html="quest.empty"></span>
     </div>
 
     <div id="quest-result" class="npc-result hidden">
@@ -257,11 +257,11 @@
         </div>
       </div>
       <div class="npc-info" style="max-width:100%">
-        <h3 class="stats-title">Detalles</h3>
+        <h3 class="stats-title" data-i18n="quest.details">Detalles</h3>
         <div id="questTooltip" class="npc-tooltip">
-          <span style="color:#8a7050">Cargando datos de Wowhead...</span>
+          <span style="color:#8a7050" data-i18n="quest.loadingWH">Cargando datos de Wowhead...</span>
         </div>
-        <a id="questWowheadBtn" href="#" target="_blank" rel="noopener" class="popup-wowhead-btn">
+        <a id="questWowheadBtn" href="#" target="_blank" rel="noopener" class="popup-wowhead-btn" data-i18n="quest.wowhead">
           Ver en Wowhead →
         </a>
       </div>
@@ -276,7 +276,7 @@
     <div class="search-bar">
       <div class="search-inner npc-search-inner">
         <div class="autocomplete-wrap">
-          <input type="text" id="itemSearch" placeholder="Nombre del ítem (ej: Lingote de hierro) o ID..." autocomplete="off">
+          <input type="text" id="itemSearch" data-i18n-ph="item.ph" placeholder="Nombre del ítem (ej: Lingote de hierro) o ID..." autocomplete="off">
           <div id="itemSuggestions" class="autocomplete-list hidden"></div>
         </div>
       </div>
@@ -284,7 +284,7 @@
 
     <div id="item-empty" class="status-msg" style="flex-direction:column;gap:16px;padding:60px 20px">
       <span style="font-size:40px">🗡</span>
-      <span style="color:#8a7050;text-align:center;max-width:480px;line-height:1.5">Buscá cualquier ítem: materiales de crafteo, armas, armaduras, gemas…<br>¿No aparece? Pegá su <strong>ID</strong> (el número en la URL de Wowhead) y Enter.</span>
+      <span style="color:#8a7050;text-align:center;max-width:480px;line-height:1.5" data-i18n-html="item.empty"></span>
     </div>
 
     <div id="item-result" class="npc-result hidden">
@@ -301,9 +301,9 @@
       </div>
       <div class="npc-info" style="max-width:100%">
         <div id="itemTooltip" class="npc-tooltip">
-          <span style="color:#8a7050">Cargando datos de Wowhead...</span>
+          <span style="color:#8a7050" data-i18n="item.loadingWH">Cargando datos de Wowhead...</span>
         </div>
-        <a id="itemWowheadBtn" href="#" target="_blank" rel="noopener" class="popup-wowhead-btn">
+        <a id="itemWowheadBtn" href="#" target="_blank" rel="noopener" class="popup-wowhead-btn" data-i18n="item.wowhead">
           Ver en Wowhead →
         </a>
       </div>
@@ -333,16 +333,14 @@
 
 <!-- COOKIE CONSENT -->
 <div id="cookieBanner" class="cookie-banner hidden">
-  <div class="cookie-text">
-    🍪 Usamos cookies de <strong>Google Analytics</strong> para entender cómo se usa el sitio.
-    No recopilamos datos personales. Podés rechazarlas sin problema.
-  </div>
+  <div class="cookie-text" data-i18n-html="cookie.text"></div>
   <div class="cookie-actions">
-    <button class="cookie-btn cookie-reject" onclick="cookieReject()">Rechazar</button>
-    <button class="cookie-btn cookie-accept" onclick="cookieAccept()">Aceptar</button>
+    <button class="cookie-btn cookie-reject" data-i18n="cookie.reject" onclick="cookieReject()">Rechazar</button>
+    <button class="cookie-btn cookie-accept" data-i18n="cookie.accept" onclick="cookieAccept()">Aceptar</button>
   </div>
 </div>
 
+<script src="i18n.js"></script>
 <script src="character3d.js"></script>
 <script src="app.js"></script>
 <script src="npc.js"></script>

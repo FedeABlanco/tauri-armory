@@ -1,10 +1,10 @@
 // ─── MISIONES ─────────────────────────────────────────────────────────────────
-// Los títulos de misión no están en ninguna base que el servidor pueda buscar, así
-// que la búsqueda por nombre se hace en Wowhead. Por ID mostramos el detalle inline
-// (nether.wowhead.com permite CORS; locale 6 = español).
-const QUEST_WOWHEAD = 'https://es.wowhead.com/quest=';
-const QUEST_SEARCH  = 'https://es.wowhead.com/search?q=';
-const NETHER_Q      = 'https://nether.wowhead.com/tooltip/quest';
+// Búsqueda por nombre = en Wowhead (no hay índice de títulos alcanzable). Por ID
+// mostramos el detalle inline (nether.wowhead.com, CORS).
+let currentQuestId = null;
+
+function questWowheadUrl(id) { return `https://${i18n.whDomain()}/quest=${id}`; }
+function questSearchUrl(q)   { return `https://${i18n.whDomain()}/search?q=${encodeURIComponent(q)}`; }
 
 function questGo() {
   const raw = document.getElementById('questSearch').value.trim();
@@ -16,46 +16,49 @@ function questGo() {
   if (m && isMostlyNumeric) {
     openQuest(parseInt(m[1]));
   } else {
-    window.open(QUEST_SEARCH + encodeURIComponent(raw), '_blank', 'noopener');
+    window.open(questSearchUrl(raw), '_blank', 'noopener');
   }
 }
 
 async function openQuest(id) {
+  currentQuestId = id;
   document.getElementById('quest-empty').classList.add('hidden');
   document.getElementById('quest-result').classList.remove('hidden');
 
   document.getElementById('questId').textContent = id;
-  document.getElementById('questName').textContent = `Misión #${id}`;
-  document.getElementById('questSub').textContent = 'Cargando datos de Wowhead...';
-  document.getElementById('questWowheadBtn').href = `${QUEST_WOWHEAD}${id}`;
+  document.getElementById('questName').textContent = i18n.t('quest.title', { id });
+  document.getElementById('questSub').textContent = i18n.t('quest.subLoading');
+  document.getElementById('questWowheadBtn').href = questWowheadUrl(id);
   document.getElementById('questTooltip').innerHTML =
-    '<span style="color:#8a7050">Cargando objetivos y recompensas...</span>';
+    `<span style="color:#8a7050">${i18n.t('quest.loadingWH')}</span>`;
 
   try {
-    const r = await fetch(`${NETHER_Q}/${id}?locale=6`, { mode: 'cors' });
+    const r = await fetch(`https://nether.wowhead.com/tooltip/quest/${id}?locale=${i18n.whLocale()}`, { mode: 'cors' });
     const data = await r.json();
 
     if (data.name) {
       document.getElementById('questName').textContent = data.name;
-      document.getElementById('questSub').textContent = 'Datos de Wowhead';
+      document.getElementById('questSub').textContent = i18n.t('quest.sub');
     }
 
     let tipHtml = '';
     if (data.tooltip) {
       const tmp = document.createElement('div');
       tmp.innerHTML = data.tooltip;
-      // quitar la fila del título (ya está arriba)
       tmp.querySelector('b.q, b.q0, b.q1, b.q2, b.q3, b.q4')?.closest('tr')?.remove();
       tipHtml = tmp.innerHTML.trim();
     }
     document.getElementById('questTooltip').innerHTML =
-      tipHtml || '<span style="color:#8a7050">Sin datos en Wowhead para esta misión.</span>';
+      tipHtml || `<span style="color:#8a7050">${i18n.t('quest.noData')}</span>`;
   } catch (err) {
     document.getElementById('questSub').textContent = '';
     document.getElementById('questTooltip').innerHTML =
-      '<span style="color:#8a7050">No se pudieron cargar los datos. Usá el botón para verla en Wowhead.</span>';
+      `<span style="color:#8a7050">${i18n.t('quest.loadFail')}</span>`;
   }
 }
+
+// Al cambiar de idioma: recargar la misión actual en el nuevo idioma
+i18n.onLangChange(() => { if (currentQuestId) openQuest(currentQuestId); });
 
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('questSearch');

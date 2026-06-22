@@ -556,6 +556,7 @@ body {
   outline: none;
 }
 .app-header select:focus { border-color: #c8960c; }
+.lang-sel { flex-shrink: 0; min-width: 54px; font-weight: bold; }
 
 /* ===== TAB NAVIGATION ===== */
 .tab-nav {

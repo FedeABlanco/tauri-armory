@@ -132,8 +132,20 @@ app.use('/mv', async (req, res) => {
 // ─── NPC search (índice en memoria desde wago.tools) ──────────────────────────
 // wago.tools expone el DB2 Creature como CSV (~1.5MB, 23k filas). Lo bajamos una
 // vez, armamos un índice {id, name, classification, type} y servimos autocompletado.
-let npcIndex = null;       // array de {id, name, cls, type}
-let npcIndexPromise = null;
+// Cachés por idioma ('es' | 'en')
+const npcIndexCache = {}, npcIndexPromise = {};
+const itemIndexCache = {}, itemIndexPromise = {};
+const zoneMapCache = {}, zoneMapPromise = {};
+
+function reqLang(req) { return req.query.lang === 'en' ? 'en' : 'es'; }
+
+// Carga perezosa cacheada por idioma
+async function getCached(cache, promises, lang, loader) {
+  if (cache[lang]) return cache[lang];
+  if (!promises[lang]) promises[lang] = loader(lang);
+  try { cache[lang] = await promises[lang]; return cache[lang]; }
+  catch (e) { promises[lang] = null; throw e; }
+}
 
 // Parser CSV mínimo que respeta comillas (los nombres pueden tener comas).
 function parseCsvLine(line) {
@@ -161,8 +173,9 @@ function norm(s) {
   return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 }
 
-async function loadNpcIndex() {
-  const url = 'https://wago.tools/db2/Creature/csv';
+async function loadNpcIndex(lang) {
+  const loc = lang === 'en' ? 'enUS' : 'esES';
+  const url = `https://wago.tools/db2/Creature/csv?locale=${loc}`;
   const r = await globalThis.fetch(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124 Safari/537.36' },
   });
@@ -199,26 +212,21 @@ app.get('/api/npc-search', async (req, res) => {
   const q = (req.query.q || '').trim();
   if (q.length < 2) return res.json({ success: true, response: [] });
 
+  let index;
   try {
-    if (!npcIndex) {
-      if (!npcIndexPromise) npcIndexPromise = loadNpcIndex();
-      npcIndex = await npcIndexPromise;
-    }
+    index = await getCached(npcIndexCache, npcIndexPromise, reqLang(req), loadNpcIndex);
   } catch (err) {
-    npcIndexPromise = null;
     return res.status(502).json({ success: false, errorstring: 'No se pudo cargar la base de NPCs: ' + err.message });
   }
 
-  const results = searchIndex(npcIndex, q, 15).map(({ id, name, cls, type }) => ({ id, name, cls, type }));
+  const results = searchIndex(index, q, 15).map(({ id, name, cls, type }) => ({ id, name, cls, type }));
   res.json({ success: true, response: results });
 });
 
-// ─── Item search (índice bundleado items-es.tsv.gz) ───────────────────────────
-let itemIndex = null;
-let itemIndexPromise = null;
-
-async function loadItemIndex() {
-  const buf = fs.readFileSync(path.join(__dirname, 'data', 'items-es.tsv.gz'));
+// ─── Item search (índices bundleados items-es / items-en .tsv.gz) ─────────────
+async function loadItemIndex(lang) {
+  const file = lang === 'en' ? 'items-en.tsv.gz' : 'items-es.tsv.gz';
+  const buf = fs.readFileSync(path.join(__dirname, 'data', file));
   const tsv = zlib.gunzipSync(buf).toString('utf8');
   const lines = tsv.split('\n');
   const idx = [];
@@ -237,26 +245,21 @@ app.get('/api/item-search', async (req, res) => {
   const q = (req.query.q || '').trim();
   if (q.length < 2) return res.json({ success: true, response: [] });
 
+  let index;
   try {
-    if (!itemIndex) {
-      if (!itemIndexPromise) itemIndexPromise = loadItemIndex();
-      itemIndex = await itemIndexPromise;
-    }
+    index = await getCached(itemIndexCache, itemIndexPromise, reqLang(req), loadItemIndex);
   } catch (err) {
-    itemIndexPromise = null;
     return res.status(502).json({ success: false, errorstring: 'No se pudo cargar la base de ítems: ' + err.message });
   }
 
-  const results = searchIndex(itemIndex, q, 20).map(({ id, name }) => ({ id, name }));
+  const results = searchIndex(index, q, 20).map(({ id, name }) => ({ id, name }));
   res.json({ success: true, response: results });
 });
 
-// ─── Zona: id → nombre (es) desde wago.tools AreaTable ────────────────────────
-let zoneMap = null;       // { [id]: nombre }
-let zonePromise = null;
-
-async function loadZoneMap() {
-  const url = 'https://wago.tools/db2/AreaTable/csv?locale=esES';
+// ─── Zona: id → nombre (es/en) desde wago.tools AreaTable ─────────────────────
+async function loadZoneMap(lang) {
+  const loc = lang === 'en' ? 'enUS' : 'esES';
+  const url = `https://wago.tools/db2/AreaTable/csv?locale=${loc}`;
   const r = await globalThis.fetch(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124 Safari/537.36' },
   });
@@ -278,16 +281,13 @@ async function loadZoneMap() {
 app.get('/api/zone-name', async (req, res) => {
   const id = parseInt(req.query.id);
   if (!id) return res.json({ success: true, name: null });
+  let map;
   try {
-    if (!zoneMap) {
-      if (!zonePromise) zonePromise = loadZoneMap();
-      zoneMap = await zonePromise;
-    }
+    map = await getCached(zoneMapCache, zoneMapPromise, reqLang(req), loadZoneMap);
   } catch (err) {
-    zonePromise = null;
     return res.json({ success: false, name: null });
   }
-  res.json({ success: true, name: zoneMap[id] || null });
+  res.json({ success: true, name: map[id] || null });
 });
 
 const PORT = process.env.PORT || 3000;
