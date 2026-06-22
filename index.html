@@ -4,6 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tauri WoW Armory</title>
+
+  <!-- ── Google Analytics (GA4) — no rastrea localhost ── -->
+  <script>
+    (function () {
+      var h = location.hostname;
+      if (h === 'localhost' || h === '127.0.0.1' || h === '') return;
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-3FQFWB3R32';
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { window.dataLayer.push(arguments); };
+      gtag('js', new Date());
+      gtag('config', 'G-3FQFWB3R32');
+    })();
+  </script>
+
   <link rel="stylesheet" href="styles.css">
   <script>const wowhead_tooltips = { "colorLinks": true, "iconSize": "large", "lang": "es" };</script>
   <script src="https://wow.zamimg.com/widgets/power.js"></script>
