@@ -4,23 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tauri WoW Armory</title>
-
-  <!-- ── Google Analytics (GA4) — no rastrea localhost ── -->
-  <script>
-    (function () {
-      var h = location.hostname;
-      if (h === 'localhost' || h === '127.0.0.1' || h === '') return;
-      var s = document.createElement('script');
-      s.async = true;
-      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-3FQFWB3R32';
-      document.head.appendChild(s);
-      window.dataLayer = window.dataLayer || [];
-      window.gtag = function () { window.dataLayer.push(arguments); };
-      gtag('js', new Date());
-      gtag('config', 'G-3FQFWB3R32');
-    })();
-  </script>
-
   <link rel="stylesheet" href="styles.css">
   <script>const wowhead_tooltips = { "colorLinks": true, "iconSize": "large", "lang": "es" };</script>
   <script src="https://wow.zamimg.com/widgets/power.js"></script>
@@ -348,10 +331,23 @@
   </div>
 </div>
 
+<!-- COOKIE CONSENT -->
+<div id="cookieBanner" class="cookie-banner hidden">
+  <div class="cookie-text">
+    🍪 Usamos cookies de <strong>Google Analytics</strong> para entender cómo se usa el sitio.
+    No recopilamos datos personales. Podés rechazarlas sin problema.
+  </div>
+  <div class="cookie-actions">
+    <button class="cookie-btn cookie-reject" onclick="cookieReject()">Rechazar</button>
+    <button class="cookie-btn cookie-accept" onclick="cookieAccept()">Aceptar</button>
+  </div>
+</div>
+
 <script src="character3d.js"></script>
 <script src="app.js"></script>
 <script src="npc.js"></script>
 <script src="quests.js"></script>
 <script src="item.js"></script>
+<script src="cookies.js"></script>
 </body>
 </html>
